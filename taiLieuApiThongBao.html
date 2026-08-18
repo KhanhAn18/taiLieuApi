@@ -1,0 +1,2416 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Tài liệu API - Phân hệ Đóng/Mở nước</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --success: #16a34a;
+            --success-light: #f0fdf4;
+            --warning: #f59e0b;
+            --warning-light: #fffbeb;
+            --danger: #dc2626;
+            --danger-light: #fef2f2;
+            --purple: #7c3aed;
+
+            --text: #172033;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --background: #f8fafc;
+            --white: #ffffff;
+
+            --sidebar-width: 290px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Arial,
+                sans-serif;
+
+            background: var(--background);
+            color: var(--text);
+        }
+
+        /* =========================
+           LAYOUT
+        ========================= */
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* =========================
+           SIDEBAR
+        ========================= */
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+
+            width: var(--sidebar-width);
+
+            background: #0f172a;
+            color: white;
+
+            display: flex;
+            flex-direction: column;
+
+            z-index: 100;
+        }
+
+        .brand {
+            padding: 24px 22px;
+            border-bottom: 1px solid rgba(255,255,255,.08);
+        }
+
+        .brand-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .brand-subtitle {
+            margin-top: 6px;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        .sidebar-content {
+            padding: 18px 14px;
+            overflow-y: auto;
+        }
+
+        .sidebar-label {
+            padding: 0 10px 10px;
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+        }
+
+        .search-box {
+            margin-bottom: 18px;
+        }
+
+        .search-box input {
+            width: 100%;
+            border: 1px solid #334155;
+            background: #1e293b;
+            color: white;
+            border-radius: 8px;
+            padding: 10px 12px;
+            outline: none;
+        }
+
+        .search-box input::placeholder {
+            color: #64748b;
+        }
+
+        .api-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            padding: 11px 10px;
+            border-radius: 8px;
+
+            cursor: pointer;
+            color: #cbd5e1;
+
+            transition: .15s;
+        }
+
+        .menu-item:hover {
+            background: #1e293b;
+            color: white;
+        }
+
+        .menu-item.active {
+            background: #1d4ed8;
+            color: white;
+        }
+
+        .api-number {
+            width: 25px;
+            height: 25px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 6px;
+
+            background: rgba(255,255,255,.1);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .menu-item.active .api-number {
+            background: rgba(255,255,255,.18);
+        }
+
+        .menu-info {
+            min-width: 0;
+        }
+
+        .menu-title {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .menu-endpoint {
+            margin-top: 3px;
+
+            color: #64748b;
+            font-size: 10px;
+
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .menu-item.active .menu-endpoint {
+            color: #bfdbfe;
+        }
+
+        /* =========================
+           MAIN
+        ========================= */
+
+        .main {
+            margin-left: var(--sidebar-width);
+            width: calc(100% - var(--sidebar-width));
+            min-width: 0;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+
+            height: 64px;
+
+            background: rgba(255,255,255,.94);
+            backdrop-filter: blur(10px);
+
+            border-bottom: 1px solid var(--border);
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            padding: 0 32px;
+        }
+
+        .breadcrumb {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .breadcrumb strong {
+            color: var(--text);
+        }
+
+        .method-badge {
+            display: inline-flex;
+            align-items: center;
+
+            padding: 5px 9px;
+            border-radius: 5px;
+
+            font-size: 11px;
+            font-weight: 800;
+
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .content {
+            max-width: 1250px;
+            margin: auto;
+            padding: 38px 42px 80px;
+        }
+
+        /* =========================
+           HERO
+        ========================= */
+
+        .hero {
+            margin-bottom: 30px;
+        }
+
+        .hero h1 {
+            margin: 0;
+
+            font-size: 32px;
+            line-height: 1.25;
+            letter-spacing: -.03em;
+        }
+
+        .hero p {
+            max-width: 800px;
+
+            margin: 12px 0 0;
+
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .hero-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+
+            margin-top: 18px;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+
+            padding: 6px 10px;
+
+            border: 1px solid var(--border);
+            background: white;
+
+            border-radius: 7px;
+
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* =========================
+           OVERVIEW
+        ========================= */
+
+        .section {
+            margin-top: 34px;
+        }
+
+        .section-title {
+            margin-bottom: 15px;
+
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            font-size: 20px;
+            font-weight: 750;
+        }
+
+        .section-title::before {
+            content: "";
+            width: 4px;
+            height: 22px;
+
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+        }
+
+        .overview-card {
+            padding: 18px;
+
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+
+            cursor: pointer;
+
+            transition: .15s;
+        }
+
+        .overview-card:hover {
+            border-color: #93c5fd;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(15,23,42,.06);
+        }
+
+        .overview-number {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .overview-card h3 {
+            margin: 9px 0 8px;
+            font-size: 14px;
+        }
+
+        .overview-card p {
+            margin: 0;
+
+            color: var(--text-secondary);
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        /* =========================
+           FLOW
+        ========================= */
+
+        .flow-container {
+            padding: 22px;
+
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .flow {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        .flow-step {
+            min-width: 170px;
+
+            padding: 15px;
+
+            border: 1px solid var(--border);
+            border-radius: 9px;
+
+            background: #fff;
+        }
+
+        .flow-step .step-number {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .flow-step strong {
+            display: block;
+            margin-top: 5px;
+            font-size: 13px;
+        }
+
+        .flow-step span {
+            display: block;
+            margin-top: 5px;
+
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .arrow {
+            color: #94a3b8;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        /* =========================
+           API CARD
+        ========================= */
+
+        .api-card {
+            margin-top: 28px;
+
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+
+            overflow: hidden;
+        }
+
+        .api-header {
+            padding: 22px 24px;
+
+            border-bottom: 1px solid var(--border);
+
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .api-header-left {
+            min-width: 0;
+        }
+
+        .api-id {
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+
+        .api-title {
+            margin: 6px 0 10px;
+
+            font-size: 20px;
+            font-weight: 750;
+        }
+
+        .endpoint {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 12px;
+
+            color: #334155;
+
+            word-break: break-all;
+        }
+
+        .api-purpose {
+            max-width: 300px;
+
+            padding: 12px 14px;
+
+            background: var(--primary-light);
+            border-radius: 8px;
+
+            font-size: 12px;
+            color: #1e40af;
+            line-height: 1.6;
+        }
+
+        .api-body {
+            padding: 24px;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .sub-title {
+            margin-bottom: 10px;
+
+            font-size: 13px;
+            font-weight: 750;
+        }
+
+        /* =========================
+           IMAGE & SCREEN GALLERY
+        ========================= */
+
+        .img-preview-card {
+            margin-top: 14px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: #f8fafc;
+            text-align: center;
+            padding: 10px;
+            position: relative;
+        }
+
+        .img-preview-card img {
+            width: 100%;
+            max-height: 380px;
+            object-fit: contain;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .img-preview-card img:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        .img-caption {
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .screen-img-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .api-screen-reference {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .api-screen-reference img {
+            width: 80px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            transition: transform 0.2s ease;
+        }
+
+        .api-screen-reference img:hover {
+            transform: scale(1.05);
+        }
+
+        .api-screen-info {
+            font-size: 12px;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .api-screen-info strong {
+            color: var(--text);
+            display: block;
+            margin-bottom: 3px;
+            font-size: 13px;
+        }
+
+        /* Lightbox Modal */
+        .lightbox-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .lightbox-modal.active {
+            display: flex;
+        }
+
+        .lightbox-content {
+            max-width: 90%;
+            max-height: 90vh;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+            object-fit: contain;
+            background: #fff;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 24px;
+            right: 32px;
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .lightbox-close:hover {
+            color: #93c5fd;
+        }
+
+        /* =========================
+           CODE BLOCK
+        ========================= */
+
+        .code-wrapper {
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+
+            border: 1px solid #334155;
+            background: #1e293b;
+
+            color: #cbd5e1;
+
+            padding: 5px 8px;
+            border-radius: 5px;
+
+            font-size: 10px;
+
+            cursor: pointer;
+        }
+
+        .copy-btn:hover {
+            background: #334155;
+        }
+
+        pre {
+            margin: 0;
+
+            padding: 18px;
+
+            background: #0f172a;
+            color: #dbeafe;
+
+            border-radius: 9px;
+
+            overflow: auto;
+
+            font-family:
+                "SFMono-Regular",
+                Consolas,
+                "Liberation Mono",
+                monospace;
+
+            font-size: 12px;
+            line-height: 1.65;
+
+            min-height: 100px;
+        }
+
+        /* =========================
+           FILTER TABLE
+        ========================= */
+
+        .filter-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+
+            margin-top: 10px;
+        }
+
+        .filter {
+            padding: 6px 9px;
+
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+
+            border-radius: 6px;
+
+            font-family: monospace;
+            font-size: 11px;
+        }
+
+        /* =========================
+           NOTE
+        ========================= */
+
+        .note {
+            display: flex;
+            gap: 12px;
+
+            padding: 16px;
+
+            border-radius: 9px;
+
+            line-height: 1.7;
+            font-size: 13px;
+        }
+
+        .note strong {
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .note.info {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+        }
+
+        .note.warning {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #92400e;
+        }
+
+        .note.danger {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        /* =========================
+           ACTION TABLE
+        ========================= */
+
+        .action-table {
+            width: 100%;
+            border-collapse: collapse;
+
+            font-size: 12px;
+        }
+
+        .action-table th {
+            text-align: left;
+
+            background: #f8fafc;
+            color: #475569;
+
+            font-size: 11px;
+            text-transform: uppercase;
+
+            padding: 11px 12px;
+
+            border-bottom: 1px solid var(--border);
+        }
+
+        .action-table td {
+            padding: 12px;
+
+            border-bottom: 1px solid var(--border);
+
+            vertical-align: top;
+        }
+
+        .action-code {
+            display: inline-block;
+
+            padding: 4px 7px;
+
+            background: #f1f5f9;
+            border-radius: 5px;
+
+            font-family: monospace;
+            font-size: 11px;
+        }
+
+        /* =========================
+           SCREEN CARDS
+        ========================= */
+
+        .screen-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .screen-card {
+            padding: 18px;
+
+            background: white;
+            border: 1px solid var(--border);
+
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .screen-number {
+            display: inline-flex;
+
+            width: 28px;
+            height: 28px;
+
+            align-items: center;
+            justify-content: center;
+
+            background: var(--primary-light);
+            color: var(--primary);
+
+            border-radius: 7px;
+
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .screen-card h3 {
+            margin: 12px 0 8px;
+            font-size: 15px;
+        }
+
+        .screen-card p {
+            margin: 0;
+
+            color: var(--text-secondary);
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .screen-card ul {
+            padding-left: 18px;
+            margin-bottom: 10px;
+
+            color: var(--text-secondary);
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        /* =========================
+           FOOTER
+        ========================= */
+
+        .footer {
+            margin-top: 60px;
+
+            text-align: center;
+
+            color: #94a3b8;
+            font-size: 11px;
+        }
+
+        /* =========================
+           MOBILE
+        ========================= */
+
+        @media (max-width: 1000px) {
+
+            .overview-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .screen-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+
+            .api-header {
+                flex-direction: column;
+            }
+
+            .api-purpose {
+                max-width: none;
+            }
+        }
+
+        @media (max-width: 750px) {
+
+            .sidebar {
+                position: static;
+                width: 100%;
+                height: auto;
+            }
+
+            .app {
+                display: block;
+            }
+
+            .main {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            .topbar {
+                position: static;
+            }
+
+            .content {
+                padding: 25px 16px 50px;
+            }
+
+            .overview-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 25px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <div class="brand-title">
+                API Documentation
+            </div>
+
+            <div class="brand-subtitle">
+                Phân hệ Đóng / Mở nước
+            </div>
+        </div>
+
+        <div class="sidebar-content">
+
+            <div class="search-box">
+                <input
+                    type="text"
+                    id="apiSearch"
+                    placeholder="Tìm API..."
+                >
+            </div>
+
+            <div class="sidebar-label">
+                API
+            </div>
+
+            <div class="api-menu">
+
+                <div
+                    class="menu-item active"
+                    data-target="api1"
+                    data-search="danh sách ngày thông báo danhSachThongBaoKhoaNuoc"
+                >
+                    <div class="api-number">01</div>
+
+                    <div class="menu-info">
+                        <div class="menu-title">
+                            Danh sách ngày thông báo
+                        </div>
+
+                        <div class="menu-endpoint">
+                            danhSachThongBaoKhoaNuoc
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    class="menu-item"
+                    data-target="api2"
+                    data-search="chi tiết danh sách khách hàng chiTietThongBaoKhoaNuoc"
+                >
+                    <div class="api-number">02</div>
+
+                    <div class="menu-info">
+                        <div class="menu-title">
+                            Chi tiết khách hàng
+                        </div>
+
+                        <div class="menu-endpoint">
+                            chiTietThongBaoKhoaNuoc
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    class="menu-item"
+                    data-target="api3"
+                    data-search="kiểm nợ kiemNoThongBao"
+                >
+                    <div class="api-number">03</div>
+
+                    <div class="menu-info">
+                        <div class="menu-title">
+                            Kiểm nợ
+                        </div>
+
+                        <div class="menu-endpoint">
+                            kiemNoThongBao
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    class="menu-item"
+                    data-target="api4"
+                    data-search="cập nhật xử lý capNhatThongBaoKhoaNuoc khóa nước trở ngại chụp ảnh cskh"
+                >
+                    <div class="api-number">04</div>
+
+                    <div class="menu-info">
+                        <div class="menu-title">
+                            Cập nhật xử lý
+                        </div>
+
+                        <div class="menu-endpoint">
+                            capNhatThongBaoKhoaNuoc
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =========================
+         MAIN
+    ========================== -->
+
+    <main class="main">
+
+        <header class="topbar">
+
+            <div class="breadcrumb">
+                API / <strong>Đóng - Mở nước</strong>
+            </div>
+
+            <div class="method-badge">
+                POST API
+            </div>
+
+        </header>
+
+
+        <div class="content">
+
+            <!-- HERO -->
+
+            <section class="hero">
+
+                <h1>
+                    Tài liệu đặc tả API
+                    <br>
+                    Phân hệ Đóng / Mở nước
+                </h1>
+
+                <p>
+                    Tài liệu mô tả toàn bộ API phục vụ luồng tra cứu
+                    thông báo khóa nước, xem danh sách khách hàng,
+                    kiểm tra công nợ và cập nhật kết quả xử lý trên ứng dụng.
+                </p>
+
+                <div class="hero-meta">
+                    <span class="tag">4 API</span>
+                    <span class="tag">3 màn hình</span>
+                    <span class="tag">Method: POST</span>
+                    <span class="tag">Mobile App</span>
+                </div>
+
+            </section>
+
+
+            <!-- OVERVIEW -->
+
+            <section class="section">
+
+                <div class="section-title">
+                    Tổng quan API
+                </div>
+
+                <div class="overview-grid">
+
+                    <div class="overview-card" onclick="scrollToApi('api1')">
+                        <div class="overview-number">API 01</div>
+                        <h3>Danh sách ngày thông báo</h3>
+                        <p>
+                            Lấy danh sách các ngày thông báo khóa nước
+                            gần nhất và số lượng khách hàng.
+                        </p>
+                    </div>
+
+                    <div class="overview-card" onclick="scrollToApi('api2')">
+                        <div class="overview-number">API 02</div>
+                        <h3>Chi tiết khách hàng</h3>
+                        <p>
+                            Lấy danh sách khách hàng của ngày được chọn
+                            cùng thông tin công nợ và trạng thái xử lý.
+                        </p>
+                    </div>
+
+                    <div class="overview-card" onclick="scrollToApi('api3')">
+                        <div class="overview-number">API 03</div>
+                        <h3>Kiểm nợ</h3>
+                        <p>
+                            Đồng bộ trạng thái thanh toán mới nhất
+                            từ dữ liệu hóa đơn.
+                        </p>
+                    </div>
+
+                    <div class="overview-card" onclick="scrollToApi('api4')">
+                        <div class="overview-number">API 04</div>
+                        <h3>Cập nhật xử lý</h3>
+                        <p>
+                            Lưu kết quả khóa nước, trở ngại,
+                            chụp ảnh và CSKH.
+                        </p>
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- SCREEN FLOW -->
+
+            <section class="section">
+
+                <div class="section-title">
+                    Luồng 3 màn hình
+                </div>
+
+                <div class="flow-container">
+
+                    <div class="flow">
+
+                        <div class="flow-step">
+                            <div class="step-number">MÀN 1</div>
+
+                            <strong>Danh sách thông báo</strong>
+
+                            <span>
+                                API 01
+                            </span>
+                        </div>
+
+                        <div class="arrow">→</div>
+
+                        <div class="flow-step">
+                            <div class="step-number">MÀN 2</div>
+
+                            <strong>Danh sách khách hàng</strong>
+
+                            <span>
+                                API 02 + API 03 + API 04
+                            </span>
+                        </div>
+
+                        <div class="arrow">→</div>
+
+                        <div class="flow-step">
+                            <div class="step-number">MÀN 3</div>
+
+                            <strong>Chi tiết khách hàng</strong>
+
+                            <span>
+                                API 02 + API 04
+                            </span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- SCREENS WITH IMAGES -->
+
+            <section class="section">
+
+                <div class="section-title">
+                    Hình ảnh & Mô tả 3 Màn hình
+                </div>
+
+                <div class="screen-grid">
+
+                    <!-- Màn 1 -->
+                    <div class="screen-card">
+
+                        <div>
+                            <span class="screen-number">
+                                01
+                            </span>
+
+                            <h3>
+                                Danh sách ngày thông báo
+                            </h3>
+
+                            <p>
+                                Hiển thị 10 ngày thông báo khóa nước gần nhất và số lượng.
+                            </p>
+
+                            <ul>
+                                <li>Ngày thông báo (DD/MM/YYYY)</li>
+                                <li>Số lượng khách hàng</li>
+                                <li>Quyền xem dữ liệu</li>
+                            </ul>
+                        </div>
+
+                        <div class="img-preview-card">
+                            <img
+                                src="images/man_1_danh_sach_ngay.png"
+                                alt="Màn hình 1 - Danh sách ngày thông báo"
+                                onclick="openLightbox(this.src)"
+                            />
+                            <div class="img-caption">
+                                🔍 Bấm vào ảnh để phóng to
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <!-- Màn 2 -->
+                    <div class="screen-card">
+
+                        <div>
+                            <span class="screen-number">
+                                02
+                            </span>
+
+                            <h3>
+                                Danh sách khách hàng
+                            </h3>
+
+                            <p>
+                                Hiển thị danh sách khách hàng thuộc ngày được chọn.
+                            </p>
+
+                            <ul>
+                                <li>Bộ lọc trạng thái (Dropdown)</li>
+                                <li>Nút cam "Kiểm nợ"</li>
+                                <li>Khóa nước / Chụp ảnh / CSKH</li>
+                            </ul>
+                        </div>
+
+                        <div class="screen-img-grid">
+                            <div class="img-preview-card" style="margin-top: 0;">
+                                <img
+                                    src="images/man_2_danh_sach_khach_hang.png"
+                                    alt="Màn hình 2 - Danh sách khách hàng"
+                                    onclick="openLightbox(this.src)"
+                                />
+                                <div class="img-caption">Danh sách</div>
+                            </div>
+                            <div class="img-preview-card" style="margin-top: 0;">
+                                <img
+                                    src="images/man_2_bo_loc_dropdown.png"
+                                    alt="Màn hình 2 - Bộ lọc dropdown"
+                                    onclick="openLightbox(this.src)"
+                                />
+                                <div class="img-caption">Bộ lọc</div>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <!-- Màn 3 -->
+                    <div class="screen-card">
+
+                        <div>
+                            <span class="screen-number">
+                                03
+                            </span>
+
+                            <h3>
+                                Chi tiết khách hàng
+                            </h3>
+
+                            <p>
+                                Hiển thị đầy đủ thông tin nghiệp vụ và công nợ.
+                            </p>
+
+                            <ul>
+                                <li>Ảnh chụp hiện trường</li>
+                                <li>Nút "Khóa nước" / "Trở ngại"</li>
+                                <li>Công nợ (Kỳ nợ, Tổng tiền)</li>
+                                <li>Mục trước / Mục tiếp</li>
+                            </ul>
+                        </div>
+
+                        <div class="screen-img-grid">
+                            <div class="img-preview-card" style="margin-top: 0;">
+                                <img
+                                    src="images/man_3_chi_tiet_khach_hang_1.png"
+                                    alt="Màn hình 3 - Chi tiết khách hàng (Phần trên)"
+                                    onclick="openLightbox(this.src)"
+                                />
+                                <div class="img-caption">Phần trên</div>
+                            </div>
+                            <div class="img-preview-card" style="margin-top: 0;">
+                                <img
+                                    src="images/man_3_chi_tiet_khach_hang_2.png"
+                                    alt="Màn hình 3 - Chi tiết công nợ (Phần dưới)"
+                                    onclick="openLightbox(this.src)"
+                                />
+                                <div class="img-caption">Phần dưới</div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================
+                 API 1
+            ========================== -->
+
+            <section
+                class="api-card"
+                id="api1"
+            >
+
+                <div class="api-header">
+
+                    <div class="api-header-left">
+
+                        <div class="api-id">
+                            API 01
+                        </div>
+
+                        <div class="api-title">
+                            Danh sách ngày thông báo
+                        </div>
+
+                        <div class="endpoint">
+                            <span class="method-badge">
+                                POST
+                            </span>
+
+                            api/v1/dongMoNuoc/danhSachThongBaoKhoaNuoc
+                        </div>
+
+                    </div>
+
+                    <div class="api-purpose">
+                        <strong>Màn hình:</strong>
+                        Màn 1
+                        <br><br>
+                        Lấy 10 ngày thông báo gần nhất
+                        kèm số lượng khách hàng.
+                    </div>
+
+                </div>
+
+
+                <div class="api-body">
+
+                    <!-- Visual reference -->
+                    <div class="api-screen-reference">
+                        <img
+                            src="images/man_1_danh_sach_ngay.png"
+                            alt="Minh họa Màn 1"
+                            onclick="openLightbox(this.src)"
+                        />
+                        <div class="api-screen-info">
+                            <strong>Giao diện kích hoạt API 01 (Màn 1)</strong>
+                            Tải danh sách 10 ngày gần nhất hiển thị bên trái (VD: <code>23/04/2026</code>) kèm số lượng trong badge xám bên phải (VD: <code>300</code>) và quyền xem của tài khoản.
+                        </div>
+                    </div>
+
+                    <div class="two-column">
+
+                        <div>
+
+                            <div class="sub-title">
+                                Request
+                            </div>
+
+                            <div class="code-wrapper">
+
+                                <button
+                                    class="copy-btn"
+                                    onclick="copyCode(this)"
+                                >
+                                    Copy
+                                </button>
+
+                                <pre>{
+  "tu_khoa": ""
+}</pre>
+
+                            </div>
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="sub-title">
+                                Response
+                            </div>
+
+                            <div class="code-wrapper">
+
+                                <button
+                                    class="copy-btn"
+                                    onclick="copyCode(this)"
+                                >
+                                    Copy
+                                </button>
+
+                                <pre>{
+  "du_lieu_xu_ly": {
+    "quyen_xem": "Nguyễn Minh Sang (Tổ ĐMN) - Chỉ xem nhóm Sang Sơn",
+    "danh_sach_thong_bao": [
+      {
+        "ngay_thong_bao": "23/04/2026",
+        "so_luong": 300
+      },
+      {
+        "ngay_thong_bao": "21/04/2026",
+        "so_luong": 300
+      },
+      {
+        "ngay_thong_bao": "16/04/2026",
+        "so_luong": 300
+      }
+    ]
+  },
+  "ma_loi": 0,
+  "dien_giai": "Lấy dữ liệu thành công"
+}</pre>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================
+                 API 2
+            ========================== -->
+
+            <section
+                class="api-card"
+                id="api2"
+            >
+
+                <div class="api-header">
+
+                    <div class="api-header-left">
+
+                        <div class="api-id">
+                            API 02
+                        </div>
+
+                        <div class="api-title">
+                            Chi tiết danh sách khách hàng
+                        </div>
+
+                        <div class="endpoint">
+
+                            <span class="method-badge">
+                                POST
+                            </span>
+
+                            api/v1/dongMoNuoc/chiTietThongBaoKhoaNuoc
+
+                        </div>
+
+                    </div>
+
+                    <div class="api-purpose">
+
+                        <strong>Màn hình:</strong>
+                        Màn 2 & Màn 3
+
+                        <br><br>
+
+                        Lấy danh sách khách hàng của
+                        ngày được chọn và đầy đủ dữ liệu
+                        phục vụ màn hình chi tiết.
+
+                    </div>
+
+                </div>
+
+
+                <div class="api-body">
+
+                    <!-- Visual reference -->
+                    <div class="api-screen-reference">
+                        <img
+                            src="images/man_2_danh_sach_khach_hang.png"
+                            alt="Minh họa Màn 2"
+                            onclick="openLightbox(this.src)"
+                        />
+                        <img
+                            src="images/man_2_bo_loc_dropdown.png"
+                            alt="Minh họa Màn 2 Bộ lọc"
+                            onclick="openLightbox(this.src)"
+                        />
+                        <div class="api-screen-info">
+                            <strong>Giao diện kích hoạt API 02 (Màn 2 & Màn 3)</strong>
+                            Kích hoạt khi người dùng bấm vào 1 ngày thông báo ở Màn 1. Trả về toàn bộ danh sách khách hàng theo bộ lọc dropdown và nhóm tổ (VD: <code>Sang Sơn [300]</code>).
+                        </div>
+                    </div>
+
+                    <div class="sub-title">
+                        Request
+                    </div>
+
+                    <div class="code-wrapper">
+
+                        <button
+                            class="copy-btn"
+                            onclick="copyCode(this)"
+                        >
+                            Copy
+                        </button>
+
+                        <pre>{
+  "ngay_thong_bao": "23/04/2026",
+  "bo_loc": "TAT_CA",
+  "tu_khoa": ""
+}</pre>
+
+                    </div>
+
+
+                    <div class="sub-title" style="margin-top:22px;">
+                        Giá trị bộ lọc (Khớp với ảnh Menu Dropdown thực tế)
+                    </div>
+
+                    <div class="filter-list">
+
+                        <span class="filter">TAT_CA</span>
+                        <span class="filter">DA_THANH_TOAN</span>
+                        <span class="filter">CHUA_THANH_TOAN</span>
+                        <span class="filter">KHOA_NUOC</span>
+                        <span class="filter">TRO_NGAI</span>
+                        <span class="filter">BLANK</span>
+
+                    </div>
+
+
+                    <div class="sub-title" style="margin-top:22px;">
+                        Response
+                    </div>
+
+                    <div class="code-wrapper">
+
+                        <button
+                            class="copy-btn"
+                            onclick="copyCode(this)"
+                        >
+                            Copy
+                        </button>
+
+                        <pre>{
+  "du_lieu_xu_ly": {
+    "ngay_thong_bao": "23/04/2026",
+    "ten_nhom_to": "Sang Sơn",
+    "tong_so_luong": 300,
+    "danh_sach_khach_hang": [
+      {
+        "stt": 1,
+        "id_dong_mo_nuoc": "4f92e195947698bdadb5b3d59fde3b99",
+        "danh_bo": "01202015540",
+        "ten_khach_hang": "TRUONG T BIEN",
+        "dia_chi": "100/5 CO BAC",
+        "so_than": "190634",
+        "ma_lo_trinh": "101116200",
+        "cskh": false,
+        "trang_thai": "DA_THONG_BAO",
+        "tong_ky": 2,
+        "tong_tien": "2.349.540",
+        "ky_nam": "03/2026, 04/2026",
+        "ngay_gui_tb": "22/04/2026 14:47 - Nguyễn Minh Sang",
+        "hinh_anh": "https://domain/images/tb_01202015540.jpg"
+      }
+    ]
+  },
+  "ma_loi": 0,
+  "dien_giai": "Lấy dữ liệu thành công"
+}</pre>
+
+                    </div>
+
+
+                    <div class="note info" style="margin-top:20px;">
+
+                        <div>ℹ️</div>
+
+                        <div>
+
+                            <strong>Thiết kế dữ liệu tối ưu</strong>
+
+                            API trả về đủ toàn bộ danh sách khách hàng để
+                            Màn 3 có thể chuyển qua
+                            <strong>Mục trước / Mục tiếp</strong>
+                            mượt mà mà không phải gọi API riêng cho từng khách hàng.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================
+                 API 3
+            ========================== -->
+
+            <section
+                class="api-card"
+                id="api3"
+            >
+
+                <div class="api-header">
+
+                    <div class="api-header-left">
+
+                        <div class="api-id">
+                            API 03
+                        </div>
+
+                        <div class="api-title">
+                            Kiểm nợ
+                        </div>
+
+                        <div class="endpoint">
+
+                            <span class="method-badge">
+                                POST
+                            </span>
+
+                            api/v1/dongMoNuoc/kiemNoThongBao
+
+                        </div>
+
+                    </div>
+
+                    <div class="api-purpose">
+
+                        <strong>Màn hình:</strong>
+                        Màn 2
+
+                        <br><br>
+
+                        Đồng bộ trạng thái thanh toán
+                        mới nhất từ dữ liệu hóa đơn.
+
+                    </div>
+
+                </div>
+
+
+                <div class="api-body">
+
+                    <!-- Visual reference -->
+                    <div class="api-screen-reference">
+                        <img
+                            src="images/man_2_danh_sach_khach_hang.png"
+                            alt="Minh họa Nút Kiểm Nợ Màn 2"
+                            onclick="openLightbox(this.src)"
+                        />
+                        <div class="api-screen-info">
+                            <strong>Nút bấm kích hoạt API 03 (Màn 2)</strong>
+                            Kích hoạt khi người dùng bấm vào nút màu cam <code>[ 📑 Kiểm nợ ]</code> ở góc trên bên phải màn hình danh sách.
+                        </div>
+                    </div>
+
+                    <div class="two-column">
+
+                        <div>
+
+                            <div class="sub-title">
+                                Request
+                            </div>
+
+                            <div class="code-wrapper">
+
+                                <button
+                                    class="copy-btn"
+                                    onclick="copyCode(this)"
+                                >
+                                    Copy
+                                </button>
+
+                                <pre>{
+  "ngay_thong_bao": "23/04/2026"
+}</pre>
+
+                            </div>
+
+                        </div>
+
+
+                        <div>
+
+                            <div class="sub-title">
+                                Response
+                            </div>
+
+                            <div class="code-wrapper">
+
+                                <button
+                                    class="copy-btn"
+                                    onclick="copyCode(this)"
+                                >
+                                    Copy
+                                </button>
+
+                                <pre>{
+  "du_lieu_xu_ly": {
+    "so_luong_da_thanh_toan": 15,
+    "so_luong_chua_thanh_toan": 285
+  },
+  "ma_loi": 0,
+  "dien_giai": "Kiểm nợ thành công"
+}</pre>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="note warning" style="margin-top:20px;">
+
+                        <div>⚠️</div>
+
+                        <div>
+
+                            <strong>Lưu ý nghiệp vụ</strong>
+
+                            API này vẫn cần thiết dù chức năng
+                            <strong>"Tra cứu nợ"</strong> đã bị loại bỏ.
+
+                            API dùng để kiểm tra và đồng bộ
+                            trạng thái thanh toán mới nhất của cả danh sách,
+                            không phải để mở một màn hình
+                            "Tra cứu nợ" riêng.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================
+                 API 4
+            ========================== -->
+
+            <section
+                class="api-card"
+                id="api4"
+            >
+
+                <div class="api-header">
+
+                    <div class="api-header-left">
+
+                        <div class="api-id">
+                            API 04
+                        </div>
+
+                        <div class="api-title">
+                            Cập nhật xử lý
+                        </div>
+
+                        <div class="endpoint">
+
+                            <span class="method-badge">
+                                POST
+                            </span>
+
+                            api/v1/dongMoNuoc/capNhatThongBaoKhoaNuoc
+
+                        </div>
+
+                    </div>
+
+                    <div class="api-purpose">
+
+                        <strong>Màn hình:</strong>
+                        Màn 2 & Màn 3
+
+                        <br><br>
+
+                        Lưu kết quả xử lý khóa nước,
+                        trở ngại, chụp ảnh và CSKH.
+
+                    </div>
+
+                </div>
+
+
+                <div class="api-body">
+
+                    <!-- Visual reference -->
+                    <div class="api-screen-reference">
+                        <img
+                            src="images/man_3_chi_tiet_khach_hang_1.png"
+                            alt="Minh họa Nút Khóa Nước / Trở Ngại Màn 3"
+                            onclick="openLightbox(this.src)"
+                        />
+                        <img
+                            src="images/man_3_chi_tiet_khach_hang_2.png"
+                            alt="Minh họa Chi tiết công nợ Màn 3"
+                            onclick="openLightbox(this.src)"
+                        />
+                        <div class="api-screen-info">
+                            <strong>Giao diện kích hoạt API 04 (Màn 2 & Màn 3)</strong>
+                            Kích hoạt khi chụp ảnh hiện trường, bấm nút đỏ <code>[ 🔒 Khóa nước ]</code>, nút vàng <code>[ ⚠️ Trở ngại ]</code>, hoặc tích chọn ô <code>CSKH: [✓]</code>.
+                        </div>
+                    </div>
+
+                    <div class="sub-title">
+                        Request
+                    </div>
+
+                    <div class="code-wrapper">
+
+                        <button
+                            class="copy-btn"
+                            onclick="copyCode(this)"
+                        >
+                            Copy
+                        </button>
+
+                        <pre>{
+  "id_dong_mo_nuoc": "4f92e195947698bdadb5b3d59fde3b99",
+  "danh_bo": "01202015540",
+  "hanh_dong": "KHOA_NUOC",
+  "cskh": true,
+  "hinh_anh": "data:image/jpeg;base64,...",
+  "ghi_chu_tro_ngai": ""
+}</pre>
+
+                    </div>
+
+
+                    <div class="sub-title" style="margin-top:22px;">
+                        Giá trị hành động (hanh_dong)
+                    </div>
+
+                    <table class="action-table">
+
+                        <thead>
+
+                            <tr>
+                                <th>Hành động</th>
+                                <th>Chức năng</th>
+                                <th>Màn hình</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            <tr>
+                                <td>
+                                    <span class="action-code">
+                                        KHOA_NUOC
+                                    </span>
+                                </td>
+
+                                <td>
+                                    Bấm nút đỏ Khóa nước
+                                </td>
+
+                                <td>
+                                    Màn 2 & Màn 3
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                    <span class="action-code">
+                                        TRO_NGAI
+                                    </span>
+                                </td>
+
+                                <td>
+                                    Bấm nút vàng Ghi nhận trở ngại
+                                </td>
+
+                                <td>
+                                    Màn 2 & Màn 3
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                    <span class="action-code">
+                                        CHUP_ANH
+                                    </span>
+                                </td>
+
+                                <td>
+                                    Bấm icon Camera để chụp ảnh bằng chứng thông báo
+                                </td>
+
+                                <td>
+                                    Màn 2 & Màn 3
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                    <span class="action-code">
+                                        UPDATE_CSKH
+                                    </span>
+                                </td>
+
+                                <td>
+                                    Tích chọn hoặc bỏ chọn ô CSKH
+                                </td>
+
+                                <td>
+                                    Màn 2 & Màn 3
+                                </td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+
+                    <div class="sub-title" style="margin-top:22px;">
+                        Response
+                    </div>
+
+                    <div class="code-wrapper">
+
+                        <button
+                            class="copy-btn"
+                            onclick="copyCode(this)"
+                        >
+                            Copy
+                        </button>
+
+                        <pre>{
+  "ma_loi": 0,
+  "dien_giai": "Cập nhật thành công"
+}</pre>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================
+                 SPECIAL NOTE
+            ========================== -->
+
+            <section class="section">
+
+                <div class="section-title">
+                    Ghi chú nghiệp vụ
+                </div>
+
+                <div class="note danger">
+
+                    <div style="font-size:18px;">
+                        !
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            Đã loại bỏ chức năng "Tra cứu nợ"
+                        </strong>
+
+                        Theo thiết kế mới (đã đánh dấu trên ảnh chụp thực tế), liên kết
+                        <strong>"Tra cứu nợ"</strong>
+                        trên Màn 3 không còn được sử dụng.
+
+                        <br>
+
+                        Các thông tin nghiệp vụ liên quan đến công nợ
+                        vẫn được hiển thị trực tiếp và đầy đủ trong thông tin
+                        khách hàng, bao gồm:
+
+                        <br><br>
+
+                        • Tổng kỳ nợ (VD: 2 kỳ)<br>
+                        • Tổng tiền (VD: 2.349.540 VNĐ)<br>
+                        • Kỳ / năm (VD: 03/2026, 04/2026)<br>
+                        • Ngày gửi thông báo & Người thực hiện (VD: 22/04/2026 14:47 - Nguyễn Minh Sang)
+
+                        <br><br>
+
+                        Không cần tạo thêm API riêng chỉ để
+                        mở chức năng "Tra cứu nợ".
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =========================
+                 API MAP
+            ========================== -->
+
+            <section class="section">
+
+                <div class="section-title">
+                    Mapping API theo màn hình
+                </div>
+
+                <table class="action-table">
+
+                    <thead>
+
+                        <tr>
+                            <th>Màn hình</th>
+                            <th>API</th>
+                            <th>Chức năng</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+                            <td>
+                                <strong>Màn 1</strong>
+                            </td>
+
+                            <td>
+                                API 01
+                            </td>
+
+                            <td>
+                                Lấy danh sách ngày thông báo
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <strong>Màn 2</strong>
+                            </td>
+
+                            <td>
+                                API 02
+                            </td>
+
+                            <td>
+                                Lấy danh sách khách hàng
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <strong>Màn 2</strong>
+                            </td>
+
+                            <td>
+                                API 03
+                            </td>
+
+                            <td>
+                                Kiểm tra và đồng bộ công nợ
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <strong>Màn 2</strong>
+                            </td>
+
+                            <td>
+                                API 04
+                            </td>
+
+                            <td>
+                                Khóa nước / Trở ngại / CSKH
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <strong>Màn 3</strong>
+                            </td>
+
+                            <td>
+                                API 02
+                            </td>
+
+                            <td>
+                                Hiển thị chi tiết khách hàng
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <strong>Màn 3</strong>
+                            </td>
+
+                            <td>
+                                API 04
+                            </td>
+
+                            <td>
+                                Chụp ảnh / Cập nhật xử lý
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </section>
+
+
+            <div class="footer">
+                Tài liệu đặc tả API — Phân hệ Đóng / Mở nước
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<!-- =========================
+     LIGHTBOX MODAL
+========================== -->
+<div id="lightboxModal" class="lightbox-modal" onclick="closeLightbox(event)">
+    <span class="lightbox-close" onclick="closeLightbox(event)">&times;</span>
+    <img id="lightboxImg" class="lightbox-content" src="" alt="Phóng to ảnh" />
+</div>
+
+
+<script>
+
+    /* =========================
+       LIGHTBOX FUNCTIONS
+    ========================== */
+
+    function openLightbox(src) {
+        const modal = document.getElementById("lightboxModal");
+        const modalImg = document.getElementById("lightboxImg");
+        modalImg.src = src;
+        modal.classList.add("active");
+    }
+
+    function closeLightbox(e) {
+        if (e.target.tagName !== "IMG" || e.target.classList.contains("lightbox-close")) {
+            const modal = document.getElementById("lightboxModal");
+            modal.classList.remove("active");
+        }
+    }
+
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+            const modal = document.getElementById("lightboxModal");
+            modal.classList.remove("active");
+        }
+    });
+
+
+    /* =========================
+       MENU API
+    ========================== */
+
+    const menuItems = document.querySelectorAll(".menu-item");
+
+    menuItems.forEach(item => {
+
+        item.addEventListener("click", () => {
+
+            const target = item.dataset.target;
+
+            document
+                .getElementById(target)
+                .scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+
+            menuItems.forEach(menu => {
+                menu.classList.remove("active");
+            });
+
+            item.classList.add("active");
+
+        });
+
+    });
+
+
+    /* =========================
+       SCROLL TO API
+    ========================== */
+
+    function scrollToApi(id) {
+
+        const target = document.getElementById(id);
+
+        if (!target) return;
+
+        target.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+
+        menuItems.forEach(item => {
+
+            item.classList.toggle(
+                "active",
+                item.dataset.target === id
+            );
+
+        });
+
+    }
+
+
+    /* =========================
+       COPY JSON
+    ========================== */
+
+    async function copyCode(button) {
+
+        const wrapper = button.parentElement;
+
+        const code = wrapper.querySelector("pre").innerText;
+
+        try {
+
+            await navigator.clipboard.writeText(code);
+
+            const oldText = button.innerText;
+
+            button.innerText = "Đã copy";
+
+            setTimeout(() => {
+                button.innerText = oldText;
+            }, 1200);
+
+        } catch (error) {
+
+            const textarea = document.createElement("textarea");
+
+            textarea.value = code;
+
+            document.body.appendChild(textarea);
+
+            textarea.select();
+
+            document.execCommand("copy");
+
+            textarea.remove();
+
+            button.innerText = "Đã copy";
+
+            setTimeout(() => {
+                button.innerText = "Copy";
+            }, 1200);
+
+        }
+
+    }
+
+
+    /* =========================
+       SEARCH API
+    ========================== */
+
+    const searchInput = document.getElementById("apiSearch");
+
+    searchInput.addEventListener("input", function () {
+
+        const keyword = this.value
+            .toLowerCase()
+            .trim();
+
+        menuItems.forEach(item => {
+
+            const text = item.dataset.search.toLowerCase();
+
+            if (!keyword || text.includes(keyword)) {
+
+                item.style.display = "flex";
+
+            } else {
+
+                item.style.display = "none";
+
+            }
+
+        });
+
+    });
+
+
+    /* =========================
+       ACTIVE API WHEN SCROLLING
+    ========================== */
+
+    const apiSections = [
+        document.getElementById("api1"),
+        document.getElementById("api2"),
+        document.getElementById("api3"),
+        document.getElementById("api4")
+    ];
+
+    const observer = new IntersectionObserver(
+        entries => {
+
+            entries.forEach(entry => {
+
+                if (entry.isIntersecting) {
+
+                    const id = entry.target.id;
+
+                    menuItems.forEach(item => {
+
+                        item.classList.toggle(
+                            "active",
+                            item.dataset.target === id
+                        );
+
+                    });
+
+                }
+
+            });
+
+        },
+        {
+            threshold: 0.15,
+            rootMargin: "-80px 0px -50% 0px"
+        }
+    );
+
+    apiSections.forEach(section => {
+
+        if (section) {
+            observer.observe(section);
+        }
+
+    });
+
+</script>
+
+</body>
+</html>
